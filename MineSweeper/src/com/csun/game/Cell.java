@@ -42,9 +42,8 @@ public class Cell implements Drawable{
     
     @Override
     public void drawCell(Graphics g, DrawInfo info) {
-        g.setColor(Color.GRAY);
-        g.draw3DRect( this.x*info.getCellLength() + info.getOffsetX(), 
-                    this.y*info.getCellLength() + info.getOffsetY(), 
-                    info.getCellLength(), info.getCellLength(), true);
+    	g.drawImage(Board.images[0], info.getOffsetX()+ this.x*info.getCellLength(), 
+    				info.getOffsetY()+ this.y*info.getCellLength(),
+    				info.getCellLength(), info.getCellLength(), null);
     }
 }
