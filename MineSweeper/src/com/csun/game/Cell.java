@@ -39,7 +39,6 @@ public class Cell implements Drawable{
         this.state = state;
     }
     
-    @Override
     public void drawCell(Graphics g, DrawInfo info) {
     	g.drawImage(Board.cache.get(Constants.Cell.BLANK), info.getOffsetX()+ this.x*info.getCellLength(), 
     				info.getOffsetY()+ this.y*info.getCellLength(),
