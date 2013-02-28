@@ -1,6 +1,5 @@
 package com.csun.game;
 
-import java.awt.Color;
 import java.awt.Graphics;
 
 public class Cell implements Drawable{
@@ -42,7 +41,7 @@ public class Cell implements Drawable{
     
     @Override
     public void drawCell(Graphics g, DrawInfo info) {
-    	g.drawImage(Board.images[0], info.getOffsetX()+ this.x*info.getCellLength(), 
+    	g.drawImage(Board.cache.get(Constants.Cell.BLANK), info.getOffsetX()+ this.x*info.getCellLength(), 
     				info.getOffsetY()+ this.y*info.getCellLength(),
     				info.getCellLength(), info.getCellLength(), null);
     }
