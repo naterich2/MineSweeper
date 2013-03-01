@@ -62,23 +62,23 @@ public class Cell implements CellAlgorithm{
 
     public void drawCell(Graphics g, DrawInfo info) {
         if (covered && !marked) {
-            myDraw(Board.cache.get(Constants.Cell.BLANK),g,info);
+            myDraw(Board.cache.get(Constants.Cell.BLANK),g,info,x,y);
         }else if (covered && marked) {
-            myDraw(Board.cache.get(Constants.Cell.BOMB_FLAGGED),g,info);
+            myDraw(Board.cache.get(Constants.Cell.BOMB_FLAGGED),g,info,x,y);
         }else if (!covered && mined) {
             if (value != -1){
-                myDraw(Board.cache.get(Constants.Cell.BOMB_REVEALED),g,info);
+                myDraw(Board.cache.get(Constants.Cell.BOMB_REVEALED),g,info,x,y);
             }if (value == -1){
-                myDraw(Board.cache.get(Constants.Cell.BOMB_DEATH),g,info);
+                myDraw(Board.cache.get(Constants.Cell.BOMB_DEATH),g,info,x,y);
             }
         }else if (!covered && !mined) {
             drawAdjacentCount(g,info);
         }
     }
 
-    private void myDraw(BufferedImage image,Graphics g, DrawInfo info) {
-        g.drawImage(image, info.getOffsetX()+ this.x*info.getCellLength(), 
-                info.getOffsetY()+ this.y*info.getCellLength(),
+    public static void myDraw(BufferedImage image,Graphics g, DrawInfo info, int x, int y) {
+        g.drawImage(image, info.getOffsetX()+ x*info.getCellLength(), 
+                info.getOffsetY()+ y*info.getCellLength(),
                 info.getCellLength(), info.getCellLength(), null);
 
     }
@@ -86,34 +86,34 @@ public class Cell implements CellAlgorithm{
     private void drawAdjacentCount(Graphics g, DrawInfo info) {
         switch (value) {
             case 0: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_ZERO),g,info);
+                myDraw(Board.cache.get(Constants.Cell.OPEN_ZERO),g,info,x,y);
                 break;
             case 1: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_ONE),g,info);
+                myDraw(Board.cache.get(Constants.Cell.OPEN_ONE),g,info,x,y);
                 break;
             case 2: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_TWO),g,info);
+                myDraw(Board.cache.get(Constants.Cell.OPEN_TWO),g,info,x,y);
                 break;
             case 3: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_THREE),g,info);
+                myDraw(Board.cache.get(Constants.Cell.OPEN_THREE),g,info,x,y);
                 break;
             case 4: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_FOUR),g,info);
+                myDraw(Board.cache.get(Constants.Cell.OPEN_FOUR),g,info,x,y);
                 break;
             case 5: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_FIVE),g,info);
+                myDraw(Board.cache.get(Constants.Cell.OPEN_FIVE),g,info,x,y);
                 break;
             case 6: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_SIX),g,info);
+                myDraw(Board.cache.get(Constants.Cell.OPEN_SIX),g,info,x,y);
                 break;
             case 7: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_SEVEN),g,info);
+                myDraw(Board.cache.get(Constants.Cell.OPEN_SEVEN),g,info,x,y);
                 break;
             case 8: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_EIGHT),g,info);
+                myDraw(Board.cache.get(Constants.Cell.OPEN_EIGHT),g,info,x,y);
                 break;
             case -1: 
-                myDraw(Board.cache.get(Constants.Cell.BOMB_DEATH),g,info);
+                myDraw(Board.cache.get(Constants.Cell.BOMB_DEATH),g,info,x,y);
                 break;
         }
     }
@@ -124,11 +124,5 @@ public class Cell implements CellAlgorithm{
         }else {
             marked = false;
         }
-    }
-
-    @Override
-    public void setFlag() {
-        // TODO Auto-generated method stub
-
     }
 }
