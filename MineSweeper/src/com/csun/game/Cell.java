@@ -119,10 +119,10 @@ public class Cell implements CellAlgorithm{
     }
 
     public void changeState() {
-        if (!covered){
-            return;
+        if (!marked){
+            marked = true;
         }else {
-            covered = false;
+            marked = false;
         }
     }
 
