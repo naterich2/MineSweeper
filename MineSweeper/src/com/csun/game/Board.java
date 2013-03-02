@@ -1,4 +1,7 @@
+
 package com.csun.game;
+
+import com.csun.game.utils.DrawingUtil;
 
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
@@ -22,7 +25,12 @@ public class Board extends JPanel {
 
     static Map<String, BufferedImage> cache;
 
-    private static final int cellLength = 20;
+    private static final int CELL_LENGTH = 20;
+    
+    private static final int BOMB = -1;
+    
+    
+    
     private boolean isGameOver;
     private static DrawInfo info;
     private int row;
@@ -37,7 +45,7 @@ public class Board extends JPanel {
 
     public Board(int offsetX, int offsetY, int row, int column) {
         super(true);
-        info = new DrawInfo(offsetX, offsetY, Board.cellLength);
+        info = new DrawInfo(offsetX, offsetY, Board.CELL_LENGTH);
         this.row = row;
         this.column = column;
         listCell = new java.util.ArrayList<Cell>();
@@ -59,7 +67,7 @@ public class Board extends JPanel {
                     testImage, 10, 10, 100, 100, null);
         }
         else {
-            drawBorder(g,info);
+            drawBorder(g, info);
             for (Cell c : listCell) {
                 c.drawCell(g, info);
             }
@@ -101,10 +109,10 @@ public class Board extends JPanel {
     }
 
     private void setMine(int num) {
-        for (int i=0; i<num; i++) {
+        for (int i = 0; i < num; i++) {
             Cell c;
             c = listCell.get(new Random().nextInt(listCell.size()));
-            while (c.isMined()){
+            while (c.isMined()) {
                 c = listCell.get(new Random().nextInt(listCell.size()));
             }
             c.setMined(true);
@@ -112,74 +120,71 @@ public class Board extends JPanel {
     }
 
     private void drawBorder(Graphics g, DrawInfo info) {
-        drawCorners(g,info);
-        drawTopEdge(g,info);
-        drawRightEdge(g,info);
-        drawBottomEdge(g,info);
-        drawLeftEdge(g,info);
+        drawCorners(g, info);
+        drawTopEdge(g, info);
+        drawRightEdge(g, info);
+        drawBottomEdge(g, info);
+        drawLeftEdge(g, info);
     }
 
-    private void drawCorners(Graphics g,DrawInfo info) {
-       Cell.myDraw(cache.get(Constants.BORDER.TOP_LEFT), g, info, -1, -1); 
-       Cell.myDraw(cache.get(Constants.BORDER.TOP_RIGHT), g, info, column, -1); 
-       Cell.myDraw(cache.get(Constants.BORDER.BOTTOM_RIGHT), g, info, column, row); 
-       Cell.myDraw(cache.get(Constants.BORDER.BOTTOM_LEFT), g, info, -1, row); 
+    private void drawCorners(Graphics g, DrawInfo info) {
+        DrawingUtil.drawImage(cache.get(Constants.BORDER.TOP_LEFT), g, info, -1, -1);
+        DrawingUtil.drawImage(cache.get(Constants.BORDER.TOP_RIGHT), g, info, column, -1);
+        DrawingUtil.drawImage(cache.get(Constants.BORDER.BOTTOM_RIGHT), g, info, column, row);
+        DrawingUtil.drawImage(cache.get(Constants.BORDER.BOTTOM_LEFT), g, info, -1, row);
     }
 
-    private void drawTopEdge(Graphics g,DrawInfo info) {
-        for (int i=0; i<column; i++) {
-           Cell.myDraw(cache.get(Constants.BORDER.TOP_BOTTOM), g, info, i, -1); 
+    private void drawTopEdge(Graphics g, DrawInfo info) {
+        for (int i = 0; i < column; i++) {
+            DrawingUtil.drawImage(cache.get(Constants.BORDER.TOP_BOTTOM), g, info, i, -1);
         }
     }
 
-    private void drawRightEdge(Graphics g,DrawInfo info) {
-        for (int i=0; i<row; i++) {
-           Cell.myDraw(cache.get(Constants.BORDER.LEFT_R), g, info, column, i); 
+    private void drawRightEdge(Graphics g, DrawInfo info) {
+        for (int i = 0; i < row; i++) {
+            DrawingUtil.drawImage(cache.get(Constants.BORDER.LEFT_R), g, info, column, i);
         }
-
     }
 
-    private void drawBottomEdge(Graphics g,DrawInfo info) {
-        for (int i=0; i<column; i++) {
-           Cell.myDraw(cache.get(Constants.BORDER.TOP_BOTTOM), g, info, i, row); 
+    private void drawBottomEdge(Graphics g, DrawInfo info) {
+        for (int i = 0; i < column; i++) {
+            DrawingUtil.drawImage(cache.get(Constants.BORDER.TOP_BOTTOM), g, info, i, row);
         }
-
     }
 
-    private void drawLeftEdge(Graphics g,DrawInfo info) {
-        for (int i=0; i<row; i++) {
-           Cell.myDraw(cache.get(Constants.BORDER.LEFT_R), g, info, -1, i); 
+    private void drawLeftEdge(Graphics g, DrawInfo info) {
+        for (int i = 0; i < row; i++) {
+            DrawingUtil.drawImage(cache.get(Constants.BORDER.LEFT_R), g, info, -1, i);
         }
-
     }
 
     public class BoardListener extends MouseAdapter {
         @Override
-        //		public void mouseClicked(MouseEvent e){
-        public void mouseReleased(MouseEvent e){
+        // public void mouseClicked(MouseEvent e){
+        public void mouseReleased(MouseEvent e) {
             if (isGameOver) {
                 return;
             }
-            int x = (e.getX()-info.getOffsetX())/column;
-            int y = (e.getY()-info.getOffsetY())/row;
-            Cell c = getCell(x,y);
+            int x = (e.getX() - info.getOffsetX()) / column;
+            int y = (e.getY() - info.getOffsetY()) / row;
+            Cell c = getCell(x, y);
             if (c == null) {
                 return;
             }
             if (c.isCovered()) {
-                if (SwingUtilities.isLeftMouseButton(e)){
+                if (SwingUtilities.isLeftMouseButton(e)) {
                     if (c.isMined()) {
                         c.setValue(-1);
                         gameOver();
                     }
-                    actionLeftClick(c);
+                    onLeftClick(c);
                 }
                 if (SwingUtilities.isRightMouseButton(e)) {
-                    actionRightClick(c);
+                    onRightClick(c);
                 }
-            }else {
-                if (SwingUtilities.isLeftMouseButton(e)){
-                    actionBothClick(c);
+            } else {
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    onBothClick(c);
                 }
             }
 
@@ -187,24 +192,24 @@ public class Board extends JPanel {
         }
     }
 
-    private Cell getCell(int x,int y){
-        if (x<0 || y<0 || x>=column || y>=row){
+    private Cell getCell(int x, int y) {
+        if (x < 0 || y < 0 || x >= column || y >= row) {
             return null;
         } else {
-            return listCell.get(y*column+x);
+            return listCell.get(y * column + x);
         }
     }
 
-    private int getAdjMineCount(Cell c){
+    private int getAdjMineCount(Cell c) {
         int count = 0;
         Cell tempCell;
-        if (c.isMined()){
-            return -1;
-        }else {
-            for (int i=0; i<8; i++) {
-                tempCell = getCell(c.getX() + Constants.dx[i],c.getY() + Constants.dy[i]);
-                if ( tempCell != null) {
-                    if (tempCell.isMined()){
+        if (c.isMined()) {
+            return BOMB; 
+        } else {
+            for (int i = 0; i < 8; i++) {
+                tempCell = getCell(c.getX() + Constants.dx[i], c.getY() + Constants.dy[i]);
+                if (tempCell != null) {
+                    if (tempCell.isMined()) {
                         count++;
                     }
                 }
@@ -220,18 +225,18 @@ public class Board extends JPanel {
         if (c.getValue() != 0) {
             return;
         }
-        for (int i=0; i<8; i++) {
-            Cell tempCell = getCell(c.getX()+Constants.dx[i], c.getY() + Constants.dy[i]);
-            if (tempCell != null && tempCell.isCovered()){
-                if (tempCell.isMarked() && !tempCell.isMined()){
+        for (int i = 0; i < 8; i++) {
+            Cell tempCell = getCell(c.getX() + Constants.dx[i], c.getY() + Constants.dy[i]);
+            if (tempCell != null && tempCell.isCovered()) {
+                if (tempCell.isMarked() && !tempCell.isMined()) {
                     tempCell.setValue(-1);
                     gameOver();
                     return;
                 }
-                if (!tempCell.isMined()){
+                if (!tempCell.isMined()) {
                     tempCell.setValue(getAdjMineCount(tempCell));
                     tempCell.setCovered(false);
-                    if (tempCell.getValue()==0){
+                    if (tempCell.getValue() == 0) {
                         uncoverAdjCell(tempCell);
                     }
                 }
@@ -239,30 +244,30 @@ public class Board extends JPanel {
         }
     }
 
-    private void actionLeftClick(Cell c) {
+    private void onLeftClick(Cell c) {
         c.setCovered(false);
         c.setValue(getAdjMineCount(c));
         if (c.getValue() == 0) {
-            uncoverAdjCell(c); 
+            uncoverAdjCell(c);
         }
     }
-    
-    private void actionRightClick(Cell c) {
+
+    private void onRightClick(Cell c) {
         c.changeState();
     }
 
-    private void actionBothClick(Cell c) {
+    private void onBothClick(Cell c) {
         int value = c.getValue();
-        for (int i=0; i<8; i++) {
-            Cell tempCell = getCell(c.getX()+Constants.dx[i], c.getY() + Constants.dy[i]);
+        for (int i = 0; i < 8; i++) {
+            Cell tempCell = getCell(c.getX() + Constants.dx[i], c.getY() + Constants.dy[i]);
             if (tempCell != null && tempCell.isMarked()) {
                 value--;
             }
         }
         System.out.println(Integer.toString(value));
         if (value == 0) {
-            for (int i=0; i<8; i++) {
-                Cell tempCell = getCell(c.getX()+Constants.dx[i], c.getY() + Constants.dy[i]);
+            for (int i = 0; i < 8; i++) {
+                Cell tempCell = getCell(c.getX() + Constants.dx[i], c.getY() + Constants.dy[i]);
                 if (tempCell != null) {
                     if (tempCell.isCovered() && !tempCell.isMarked()) {
                         if (tempCell.isMined()) {
@@ -278,32 +283,32 @@ public class Board extends JPanel {
             }
         }
     }
-    
+
     private void gameOver() {
         isGameOver = true;
         uncoverBoard();
     }
 
     private void uncoverBoard() {
-        for (Cell c :listCell) {
+        for (Cell c : listCell) {
             if (c.isMined()) {
                 c.setCovered(false);
             }
         }
     }
-    
+
     private void resetBoard() {
         listCell.clear();
         init(40);
         this.isGameOver = false;
         repaint();
     }
-    
+
     private JMenuBar buildMenu() {
         JMenuBar menuBar = new JMenuBar();
         JMenu menuGame = new JMenu("Game");
         menuBar.add(menuGame);
-        
+
         JMenuItem menuItemNew = new JMenuItem("New");
         menuItemNew.addActionListener(new ActionListener() {
             @Override
@@ -314,13 +319,13 @@ public class Board extends JPanel {
         menuGame.add(menuItemNew);
         return menuBar;
     }
-    
+
     public static void play() {
         JFrame frame = new JFrame("MineSweeper");
-        Board board = new Board(100,100,20,20);
+        Board board = new Board(60, 60, 20, 20);
         frame.setContentPane(board);
         frame.setJMenuBar(board.buildMenu());
-        frame.setSize(800, 600);
+        frame.setSize(550, 600);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
