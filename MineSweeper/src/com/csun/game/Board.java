@@ -3,6 +3,7 @@ package com.csun.game;
 
 import com.csun.game.utils.DrawingUtil;
 
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,67 +27,59 @@ public class Board extends JPanel {
     static Map<String, BufferedImage> cache;
 
     private static final int CELL_LENGTH = 20;
-    
+
     private static final int BOMB = -1;
-    
-    
-    
+
     private boolean isGameOver;
     private static DrawInfo info;
     private int row;
     private int column;
+    private int numMines;
+    private int cellCount;
+    private int mineCount;
     private java.util.ArrayList<Cell> listCell;
 
-    /**
-     * Test only
-     */
-    private boolean isTest = false;
-    private BufferedImage testImage;
-
-    public Board(int offsetX, int offsetY, int row, int column) {
+    public Board() {
         super(true);
+        this.addMouseListener(new BoardListener());
+        listCell = new java.util.ArrayList<Cell>();
+        cache = new HashMap<String, BufferedImage>();
+        loadImages();
+    }
+
+    public void createBoard(int offsetX, int offsetY, int row, int column, double d) {
         info = new DrawInfo(offsetX, offsetY, Board.CELL_LENGTH);
         this.row = row;
         this.column = column;
-        listCell = new java.util.ArrayList<Cell>();
-        cache = new HashMap<String, BufferedImage>();
+        listCell.clear();
+        this.numMines = (int) (row*column*d);
         this.isGameOver = false;
         setupLayout();
-    }
-
-    public Board(BufferedImage testImage) {
-        this.testImage = testImage;
-        this.isTest = true;
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        if (isTest) {
-            g.drawImage(
-                    testImage, 10, 10, 100, 100, null);
-        }
-        else {
-            drawBorder(g, info);
-            for (Cell c : listCell) {
-                c.drawCell(g, info);
-            }
+        drawBorder(g, info);
+        for (Cell c : listCell) {
+            c.drawCell(g, info);
         }
     }
 
     private void setupLayout() {
-        init(40);
-        this.addMouseListener(new BoardListener());
+        init();
+        this.setPreferredSize(new Dimension(info.getOffsetX()*3 + column*Board.CELL_LENGTH,info.getOffsetY()*3 + row*Board.CELL_LENGTH));
     }
 
-    private void init(int mines) {
+    private void init() {
         for (int i = 0; i < row; i++) {
             for (int j = 0; j < column; j++) {
                 listCell.add(new Cell(j, i));
             }
         }
-        loadImages();
-        setMine(mines);
+        setMine();
+        this.cellCount = row*column-this.numMines;
+        mineCount = this.numMines;
     }
 
     private void loadImages() {
@@ -108,8 +101,8 @@ public class Board extends JPanel {
         }
     }
 
-    private void setMine(int num) {
-        for (int i = 0; i < num; i++) {
+    private void setMine() {
+        for (int i = 0; i < numMines; i++) {
             Cell c;
             c = listCell.get(new Random().nextInt(listCell.size()));
             while (c.isMined()) {
@@ -165,30 +158,35 @@ public class Board extends JPanel {
             if (isGameOver) {
                 return;
             }
-            int x = (e.getX() - info.getOffsetX()) / column;
-            int y = (e.getY() - info.getOffsetY()) / row;
+            int x = (e.getX() - info.getOffsetX()) / CELL_LENGTH;
+            int y = (e.getY() - info.getOffsetY()) / CELL_LENGTH;
             Cell c = getCell(x, y);
             if (c == null) {
                 return;
             }
+            int btn = e.getButton();
             if (c.isCovered()) {
-                if (SwingUtilities.isLeftMouseButton(e)) {
+                if (btn == MouseEvent.BUTTON1) {
                     if (c.isMined()) {
                         c.setValue(-1);
                         gameOver();
+                        JOptionPane.showMessageDialog(Board.this, "Game over. You lose!!");
                     }
                     onLeftClick(c);
                 }
-                if (SwingUtilities.isRightMouseButton(e)) {
+                if (btn == MouseEvent.BUTTON3) {
                     onRightClick(c);
                 }
             } else {
-                if (SwingUtilities.isLeftMouseButton(e)) {
+                if (btn == MouseEvent.BUTTON1 || btn == MouseEvent.BUTTON3) {
                     onBothClick(c);
                 }
             }
-
             repaint();
+            System.out.println(Integer.toString(mineCount) + " " + Integer.toString(cellCount));
+            if (cellCount==0 && mineCount==0) {
+                JOptionPane.showMessageDialog(Board.this, "You won. Good job!!");
+            }
         }
     }
 
@@ -231,11 +229,13 @@ public class Board extends JPanel {
                 if (tempCell.isMarked() && !tempCell.isMined()) {
                     tempCell.setValue(-1);
                     gameOver();
+                    JOptionPane.showMessageDialog(Board.this,"Game over, you lose!");
                     return;
                 }
                 if (!tempCell.isMined()) {
                     tempCell.setValue(getAdjMineCount(tempCell));
                     tempCell.setCovered(false);
+                    cellCount--;
                     if (tempCell.getValue() == 0) {
                         uncoverAdjCell(tempCell);
                     }
@@ -246,6 +246,7 @@ public class Board extends JPanel {
 
     private void onLeftClick(Cell c) {
         c.setCovered(false);
+        cellCount--;
         c.setValue(getAdjMineCount(c));
         if (c.getValue() == 0) {
             uncoverAdjCell(c);
@@ -253,7 +254,17 @@ public class Board extends JPanel {
     }
 
     private void onRightClick(Cell c) {
-        c.changeState();
+        if (c.isMarked()){
+            c.setMarked(false);
+            if (c.isMined()) {
+                mineCount++;
+            }
+        }else {
+            c.setMarked(true);
+            if (c.isMined()) {
+                mineCount--;
+            }
+        }
     }
 
     private void onBothClick(Cell c) {
@@ -264,7 +275,6 @@ public class Board extends JPanel {
                 value--;
             }
         }
-        System.out.println(Integer.toString(value));
         if (value == 0) {
             for (int i = 0; i < 8; i++) {
                 Cell tempCell = getCell(c.getX() + Constants.dx[i], c.getY() + Constants.dy[i]);
@@ -277,6 +287,7 @@ public class Board extends JPanel {
                         }
                         tempCell.setValue(getAdjMineCount(tempCell));
                         tempCell.setCovered(false);
+                        cellCount--;
                         uncoverAdjCell(tempCell);
                     }
                 }
@@ -287,6 +298,7 @@ public class Board extends JPanel {
     private void gameOver() {
         isGameOver = true;
         uncoverBoard();
+        repaint();
     }
 
     private void uncoverBoard() {
@@ -299,7 +311,7 @@ public class Board extends JPanel {
 
     private void resetBoard() {
         listCell.clear();
-        init(40);
+        init();
         this.isGameOver = false;
         repaint();
     }
@@ -317,15 +329,51 @@ public class Board extends JPanel {
             }
         });
         menuGame.add(menuItemNew);
+
+        JMenuItem menuItemEasy = new JMenuItem("Beginner");
+        menuItemEasy.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                createBoard(Board.info.getOffsetX(),Board.info.getOffsetY(),10,10,.1);
+                repaint();
+            }
+        });
+        menuGame.add(menuItemEasy);
+
+        JMenuItem menuItemIntermediate = new JMenuItem("Intermediate");
+        menuItemIntermediate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                createBoard(Board.info.getOffsetX(),Board.info.getOffsetY(),15,15,.15);
+                repaint();
+            }
+        });
+        menuGame.add(menuItemIntermediate);
+
+        JMenuItem menuItemExpert = new JMenuItem("Expert");
+        menuItemExpert.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                createBoard(Board.info.getOffsetX(),Board.info.getOffsetY(),20,20,.2);
+                repaint();
+            }
+        });
+        menuGame.add(menuItemExpert);
         return menuBar;
     }
 
     public static void play() {
         JFrame frame = new JFrame("MineSweeper");
-        Board board = new Board(60, 60, 20, 20);
+        int offsetX = 60;
+        int offsetY = 60;
+        int row = 20;
+        int column = 20;
+        double ratio = .1;
+        Board board = new Board();
+        board.createBoard(offsetX, offsetY, row, column, ratio);
         frame.setContentPane(board);
         frame.setJMenuBar(board.buildMenu());
-        frame.setSize(550, 600);
+        frame.setSize(board.getPreferredSize());
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
