@@ -2,8 +2,6 @@
 package com.csun.game;
 
 public class Constants {
-    public static final int[] dx = {0,1,1,1,0,-1,-1,-1};
-    public static final int[] dy = {-1,-1,0,1,1,1,0,-1};
     public class Cell {
         public static final String BLANK = "blank.gif";
         public static final String BOMB_DEATH = "bombdeath.gif";

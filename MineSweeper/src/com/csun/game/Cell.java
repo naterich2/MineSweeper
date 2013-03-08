@@ -3,7 +3,7 @@ package com.csun.game;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 
-public class Cell implements CellAlgorithm{
+public class Cell {
     private int x;
     private int y;
     private int value = 0;
@@ -59,70 +59,62 @@ public class Cell implements CellAlgorithm{
     public void setMarked(boolean marked) {
         this.marked = marked;
     }
-
-    public void drawCell(Graphics g, DrawInfo info) {
+    
+    public void draw(Graphics g) {
         if (covered && !marked) {
-            myDraw(Board.cache.get(Constants.Cell.BLANK),g,info,x,y);
+            drawCell(Board.cache.get(Constants.Cell.BLANK),g,x,y);
         }else if (covered && marked) {
-            myDraw(Board.cache.get(Constants.Cell.BOMB_FLAGGED),g,info,x,y);
+            drawCell(Board.cache.get(Constants.Cell.BOMB_FLAGGED),g,x,y);
         }else if (!covered && mined) {
             if (value != -1){
-                myDraw(Board.cache.get(Constants.Cell.BOMB_REVEALED),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.BOMB_REVEALED),g,x,y);
             }if (value == -1){
-                myDraw(Board.cache.get(Constants.Cell.BOMB_DEATH),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.BOMB_DEATH),g,x,y);
             }
         }else if (!covered && !mined) {
-            drawAdjacentCount(g,info);
+            drawAdjacentCount(g);
         }
     }
 
-    public static void myDraw(BufferedImage image,Graphics g, DrawInfo info, int x, int y) {
-        g.drawImage(image, info.getOffsetX()+ x*info.getCellLength(), 
-                info.getOffsetY()+ y*info.getCellLength(),
-                info.getCellLength(), info.getCellLength(), null);
+    public static void drawCell(BufferedImage image,Graphics g, int x, int y) {
+        g.drawImage(image, DrawInfo.OFFSET_X + x*DrawInfo.CELL_LENGTH, 
+                DrawInfo.OFFSET_Y+ y*DrawInfo.CELL_LENGTH,
+                DrawInfo.CELL_LENGTH,DrawInfo.CELL_LENGTH, null);
 
     }
 
-    private void drawAdjacentCount(Graphics g, DrawInfo info) {
+    private void drawAdjacentCount(Graphics g) {
         switch (value) {
             case 0: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_ZERO),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.OPEN_ZERO),g,x,y);
                 break;
             case 1: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_ONE),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.OPEN_ONE),g,x,y);
                 break;
             case 2: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_TWO),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.OPEN_TWO),g,x,y);
                 break;
             case 3: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_THREE),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.OPEN_THREE),g,x,y);
                 break;
             case 4: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_FOUR),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.OPEN_FOUR),g,x,y);
                 break;
             case 5: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_FIVE),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.OPEN_FIVE),g,x,y);
                 break;
             case 6: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_SIX),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.OPEN_SIX),g,x,y);
                 break;
             case 7: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_SEVEN),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.OPEN_SEVEN),g,x,y);
                 break;
             case 8: 
-                myDraw(Board.cache.get(Constants.Cell.OPEN_EIGHT),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.OPEN_EIGHT),g,x,y);
                 break;
             case -1: 
-                myDraw(Board.cache.get(Constants.Cell.BOMB_DEATH),g,info,x,y);
+                drawCell(Board.cache.get(Constants.Cell.BOMB_DEATH),g,x,y);
                 break;
-        }
-    }
-
-    public void changeState() {
-        if (!marked){
-            marked = true;
-        }else {
-            marked = false;
         }
     }
 }
