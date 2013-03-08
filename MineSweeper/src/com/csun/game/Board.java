@@ -51,7 +51,6 @@ public class Board extends JPanel {
         info = new DrawInfo(offsetX, offsetY, Board.CELL_LENGTH);
         this.row = row;
         this.column = column;
-        listCell.clear();
         this.numMines = (int) (row*column*d);
         this.isGameOver = false;
         setupLayout();
@@ -72,6 +71,7 @@ public class Board extends JPanel {
     }
 
     private void init() {
+        listCell.clear();
         for (int i = 0; i < row; i++) {
             for (int j = 0; j < column; j++) {
                 listCell.add(new Cell(j, i));
@@ -198,7 +198,7 @@ public class Board extends JPanel {
         }
     }
 
-    private int getAdjMineCount(Cell c) {
+    private int evalCell(Cell c) {
         int count = 0;
         Cell tempCell;
         if (c.isMined()) {
@@ -233,7 +233,7 @@ public class Board extends JPanel {
                     return;
                 }
                 if (!tempCell.isMined()) {
-                    tempCell.setValue(getAdjMineCount(tempCell));
+                    tempCell.setValue(evalCell(tempCell));
                     tempCell.setCovered(false);
                     cellCount--;
                     if (tempCell.getValue() == 0) {
@@ -247,7 +247,7 @@ public class Board extends JPanel {
     private void onLeftClick(Cell c) {
         c.setCovered(false);
         cellCount--;
-        c.setValue(getAdjMineCount(c));
+        c.setValue(evalCell(c));
         if (c.getValue() == 0) {
             uncoverAdjCell(c);
         }
@@ -285,7 +285,7 @@ public class Board extends JPanel {
                             gameOver();
                             return;
                         }
-                        tempCell.setValue(getAdjMineCount(tempCell));
+                        tempCell.setValue(evalCell(tempCell));
                         tempCell.setCovered(false);
                         cellCount--;
                         uncoverAdjCell(tempCell);
@@ -301,7 +301,7 @@ public class Board extends JPanel {
         repaint();
     }
 
-    private void uncoverBoard() {
+    public void uncoverBoard() {
         for (Cell c : listCell) {
             if (c.isMined()) {
                 c.setCovered(false);
@@ -309,7 +309,7 @@ public class Board extends JPanel {
         }
     }
 
-    private void resetBoard() {
+    public void resetBoard() {
         listCell.clear();
         init();
         this.isGameOver = false;
