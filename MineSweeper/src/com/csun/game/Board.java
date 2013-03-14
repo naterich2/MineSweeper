@@ -1,6 +1,9 @@
 package com.csun.game;
 
 import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -16,6 +19,8 @@ import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 enum Direction {
 	N(0,-1),
@@ -68,6 +73,7 @@ public class Board extends JPanel {
 	private int mineCount;
 	private java.util.ArrayList<Cell> listCell;
 	private Border boardBorder;
+	private JDialog dialog;
 
 	public Board() {
 		super(true);
@@ -75,6 +81,9 @@ public class Board extends JPanel {
 		cache = new HashMap<String, BufferedImage>();
 		boardBorder = new Border();
 		loadImages();
+		dialog = new JDialog();
+		dialog.setTitle("Custom");
+		dialog = buildDialog();
 		this.addMouseListener(new BoardListener());
 	}
 
@@ -212,12 +221,7 @@ public class Board extends JPanel {
 		for (Direction d : Direction.values()) {
 			Cell tempCell = getCell(c.getX() + d.dx(), c.getY() + d.dy());
 			if (tempCell != null && tempCell.isCovered()) {
-				if (tempCell.isMarked() && !tempCell.isMined()) {
-					tempCell.setValue(-1);
-					gameOver(GameState.LOSE);
-					return;
-				}
-				if (!tempCell.isMined()) {
+				if (!tempCell.isMined() && !tempCell.isMarked()) {
 					tempCell.setValue(evalCell(tempCell));
 					tempCell.setCovered(false);
 					cellCount--;
@@ -342,9 +346,104 @@ public class Board extends JPanel {
 			}
 		});
 		menuGame.add(menuItemExpert);
+		
+		JMenuItem menuItemCustom = new JMenuItem("Custom");
+		menuItemCustom.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dialog.setVisible(true);
+			}
+		});
+		menuGame.add(menuItemCustom);
 		return menuBar;
 	}
-
+	
+	private JDialog buildDialog() {
+		dialog.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.ipady = 10;
+		c.ipadx = 20;
+		c.gridwidth = 1;
+		c.insets = new Insets(0,10,0,10);
+		dialog.add(new JLabel("Number of row"),c);
+		
+		final JTextField rowField = new JTextField();
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.weightx = 2;
+		c.weighty = 1;
+		dialog.add(rowField,c);
+		
+		c.gridwidth = 1;
+		dialog.add(new JLabel("Number of Column"),c);
+		
+		final JTextField colField = new JTextField();
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.weightx = 2;
+		dialog.add(colField,c);
+		
+		c.gridwidth = 1;
+		dialog.add(new JLabel("Mine percentage"),c);
+		
+		final JTextField mineField = new JTextField("10");
+		c.gridwidth = 1;
+		c.weightx = 1;
+		dialog.add(mineField,c);
+		JSlider slider = new JSlider(JSlider.HORIZONTAL,0,100,10);
+		slider.addChangeListener(new ChangeListener(){
+			
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				JSlider s = (JSlider) e.getSource();
+				mineField.setText(Integer.toString(s.getValue()));
+			}
+			
+		});
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.insets = new Insets(0,0,0,10);
+		dialog.add(slider,c);
+		
+		c.gridwidth = 1;
+		JButton okButton = new JButton("OK");
+		c.insets = new Insets(0,40,0,10);
+		dialog.add(okButton,c);
+		
+		JButton cancelButton = new JButton("Cancel");
+		c.insets = new Insets(0,10,0,10);
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		dialog.add(cancelButton,c);
+		
+		okButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dialog.setVisible(false);
+				try {
+				create(DrawInfo.OFFSET_X,DrawInfo.OFFSET_Y,
+						Integer.parseInt(colField.getText()),
+						Integer.parseInt(rowField.getText()),
+						Integer.parseInt(mineField.getText())/100.0);
+				}
+				catch (Exception ex) {
+					JOptionPane.showMessageDialog(Board.this, "Invalid input!!");
+				}
+				repaint();
+			}
+		});
+		
+		cancelButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dialog.setVisible(false);
+			}
+		});
+		
+		dialog.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+		dialog.setSize(300,200);
+		return dialog;
+	}
+	
 	public static void play() {
 		JFrame frame = new JFrame("MineSweeper");
 		int offsetX = 60;
